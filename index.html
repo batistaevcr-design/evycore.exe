@@ -1,0 +1,2538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>evycore.exe — V2</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ===== DESIGN TOKENS ===== */
+  :root {
+    --color-bg: #F7F9FB;
+    --color-surface: #FFFFFF;
+
+    --color-text-primary: #0F172A;
+    --color-text-secondary: #475569;
+    --color-text-disabled: #94A3B8;
+
+    --color-primary: #2563EB;
+    --color-primary-hover: #1D4ED8;
+    --color-primary-soft: #DBEAFE;
+
+    --color-accent: #88D8C0;
+    --color-accent-soft: #E6F7F3;
+    --color-accent-strong: #5EC2A6;
+
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+
+    --color-border: #E2E8F0;
+    --color-surface-alt: #F1F5F9;
+
+    --shadow: 0 2px 12px rgba(15,23,42,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+
+    /* Legacy aliases */
+    --bg: var(--color-bg);
+    --surface: var(--color-surface);
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+    --text-disabled: var(--color-text-disabled);
+    --blue: var(--color-primary);
+    --blue-hover: var(--color-primary-hover);
+    --blue-soft: var(--color-primary-soft);
+    --aqua: var(--color-accent);
+    --aqua-soft: var(--color-accent-soft);
+    --aqua-strong: var(--color-accent-strong);
+    --success: var(--color-success);
+    --warning: var(--color-warning);
+    --error: var(--color-error);
+    --border: var(--color-border);
+  }
+
+  [data-theme="dark"] {
+    --color-bg: #020617;
+    --color-surface: #0F172A;
+    --color-text-primary: #E2E8F0;
+    --color-text-secondary: #94A3B8;
+    --color-primary: #3B82F6;
+    --color-accent: #88D8C0;
+    --color-border: #1E293B;
+    --color-surface-alt: #0F172A;
+    --bg: var(--color-bg);
+    --surface: var(--color-surface);
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+    --text-disabled: #64748B;
+    --blue: var(--color-primary);
+    --blue-soft: #1E3A8A;
+    --aqua: var(--color-accent);
+    --aqua-soft: #134E4A;
+    --aqua-strong: var(--color-accent-strong);
+    --border: var(--color-border);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #0D1526;
+    font-family: var(--font-body);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* ===== SHELL ===== */
+  .shell {
+    position: relative;
+    width: 375px;
+    height: 812px;
+  }
+
+  .phone-frame {
+    position: absolute;
+    inset: 0;
+    background: var(--color-bg);
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 10px #1A2540,
+      0 0 0 12px #2D3F5E,
+      0 40px 80px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 30px;
+    background: #1A2540;
+    border-radius: 0 0 18px 18px;
+    z-index: 100;
+  }
+
+  .status-bar {
+    height: 44px;
+    padding: 12px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+    background: transparent;
+  }
+  .status-bar.dark { color: #94A3B8; }
+  .status-icons { display: flex; gap: 5px; align-items: center; font-size: 11px; }
+
+  /* ===== SCREEN SYSTEM ===== */
+  .screens-container {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+    overflow: hidden;
+  }
+  .screen.active { transform: translateX(0); }
+  .screen.exit-left { transform: translateX(-30%); }
+
+  .screen-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .screen-scroll::-webkit-scrollbar { display: none; }
+
+  /* ===== BOTTOM NAV — FIXED GLOBAL ===== */
+  .bottom-nav {
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    padding: 8px 0 20px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1000;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .bottom-nav.dark-nav {
+    background: #0A1628;
+    border-top-color: rgba(136,216,192,0.15);
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: opacity 0.15s;
+  }
+  .nav-item:active { opacity: 0.7; }
+  .nav-icon { font-size: 20px; line-height: 1; }
+  .nav-text {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-disabled);
+    font-family: var(--font-display);
+    letter-spacing: 0.2px;
+  }
+  .nav-item.active .nav-text { color: var(--color-primary); }
+  .nav-item.active-aqua .nav-text { color: var(--color-accent-strong); }
+  .nav-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    margin: 0 auto;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .nav-item.active .nav-dot { opacity: 1; }
+
+  /* ===== ONBOARDING ===== */
+  .onboard-screen {
+    background: linear-gradient(160deg, #0F172A 0%, #1E293B 100%);
+    flex: 1;
+    padding: 16px 24px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto;
+  }
+
+  .onboard-progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+  .progress-dot {
+    height: 4px;
+    border-radius: 2px;
+    background: #334155;
+    flex: 1;
+    transition: background 0.3s;
+  }
+  .progress-dot.active { background: var(--color-accent); }
+
+  .onboard-illustration {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 12px 32px rgba(136,216,192,0.25);
+  }
+  .onboard-emoji { font-size: 48px; margin-bottom: 20px; display: block; }
+
+  .onboard-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    color: #E2E8F0;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .onboard-sub {
+    font-size: 15px;
+    color: #94A3B8;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .btn-onboard {
+    background: var(--color-accent);
+    color: #0F172A;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.1s, opacity 0.1s;
+  }
+  .btn-onboard:active { transform: scale(0.98); opacity: 0.9; }
+
+  /* ===== CHIPS ===== */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .chip {
+    background: #1E293B;
+    border: 1.5px solid #334155;
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip.active {
+    background: rgba(136,216,192,0.15);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+  .chip-light {
+    background: var(--color-accent-soft);
+    border: 1.5px solid #C5EDE4;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-accent-strong);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* ===== LIGHT SCREENS ===== */
+  .light-screen { background: var(--color-bg); flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ===== HOME HEADER ===== */
+  .home-top {
+    padding: 16px 20px 8px;
+    background: var(--color-bg);
+  }
+  .home-date {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-disabled);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 2px;
+    font-family: var(--font-display);
+  }
+  .home-greeting {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+  }
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    margin-top: 6px;
+  }
+
+  .p20 { padding: 0 20px; }
+  .pt8 { padding-top: 8px; }
+  .pb100 { padding-bottom: 100px; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+  .card-aqua {
+    background: var(--color-accent-soft);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid #C5EDE4;
+    margin-bottom: 12px;
+  }
+  .card-blue {
+    background: var(--color-primary-soft);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid #BFDBFE;
+    margin-bottom: 12px;
+  }
+  .card--rotina {
+    border-left: 4px solid var(--color-primary);
+  }
+  .card--prazer {
+    background: var(--color-accent-soft);
+  }
+  .card-friends {
+    background: linear-gradient(135deg, #E6F7F3 0%, #F0FBF8 100%);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1.5px solid #A8E4D6;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-friends::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(136,216,192,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .card-moment {
+    background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card--done {
+    opacity: 0.55;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card-title-lg {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 2px;
+  }
+  .card-body {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .microcopy {
+    font-size: 12px;
+    color: var(--color-text-disabled);
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-bar-wrap {
+    background: var(--color-border);
+    height: 6px;
+    border-radius: 3px;
+    margin: 10px 0 6px;
+  }
+  .progress-bar-fill {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--color-primary);
+    transition: width 0.4s ease;
+  }
+  .progress-bar-fill.aqua { background: var(--color-accent-strong); }
+  .progress-label {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    color: var(--color-text-disabled);
+    text-align: right;
+  }
+
+  /* ===== TASK ITEMS ===== */
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    transition: opacity 0.2s;
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--color-border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .task-check.done {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: white;
+    font-size: 11px;
+  }
+  .task-label { flex: 1; }
+  .task-time { font-size: 11px; color: var(--color-text-disabled); font-weight: 500; }
+  .task-emoji { font-size: 14px; }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.1s, opacity 0.1s;
+  }
+  .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+
+  .btn-aqua {
+    background: var(--color-accent);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.1s;
+  }
+  .btn-aqua:active { transform: scale(0.98); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1.5px solid #CBD5E1;
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn-ghost:active { background: var(--color-primary-soft); }
+
+  .btn-ghost-aqua {
+    background: transparent;
+    color: var(--color-accent-strong);
+    border: 1.5px solid #A8E4D6;
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn-ghost-aqua:active { background: var(--color-accent-soft); }
+
+  .btn-small {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .btn-small:active { opacity: 0.7; }
+
+  .btn-small-aqua {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-strong);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .btn-small-aqua:active { opacity: 0.7; }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .btn-row .btn-small-aqua, .btn-row .btn-small { flex: 1; text-align: center; }
+
+  /* ===== CTA CONTEXTUAL ===== */
+  .cta-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 8px 0 4px;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+  }
+  .cta-strip:active { opacity: 0.5; }
+  .cta-strip.aqua { color: var(--color-accent-strong); }
+
+  /* ===== SECTION BLOCK ===== */
+  .section-block-title {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text-disabled);
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+
+  .screen-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+  .screen-subtitle {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+  .screen-header { padding: 20px 20px 0; }
+
+  /* ===== TABS ===== */
+  .tabs {
+    display: flex;
+    background: var(--color-bg);
+    padding: 4px;
+    border-radius: 12px;
+    gap: 2px;
+    margin-bottom: 14px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    font-family: var(--font-display);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow);
+  }
+
+  /* ===== EXPLORE CARDS ===== */
+  .explore-card {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+  .explore-img {
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+  }
+  .explore-img.music { background: linear-gradient(135deg, #1DB954 0%, #0F9D58 100%); }
+  .explore-img.book  { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
+  .explore-img.sport { background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); }
+  .explore-img.friends { background: linear-gradient(135deg, #88D8C0 0%, #5EC2A6 100%); }
+  .explore-body { padding: 12px 14px 14px; }
+
+  /* ===== FRIEND CARDS ===== */
+  .friend-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: 2px solid white;
+    flex-shrink: 0;
+    margin-right: -8px;
+  }
+  .friend-avatar:nth-child(1) { background: linear-gradient(135deg, #FDA4AF, #F43F5E); z-index: 3; }
+  .friend-avatar:nth-child(2) { background: linear-gradient(135deg, #A5B4FC, #818CF8); z-index: 2; }
+  .friend-avatar:nth-child(3) { background: linear-gradient(135deg, #6EE7B7, #34D399); z-index: 1; }
+
+  .friend-card {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .friend-card:active { opacity: 0.7; }
+  .friend-card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .friend-card-info { flex: 1; }
+  .friend-card-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .friend-card-vibe {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 1px;
+  }
+
+  /* ===== MOMENT CARDS ===== */
+  .moment-card {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .moment-card:active { opacity: 0.7; }
+  .moment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .moment-emoji-row { display: flex; gap: 4px; margin-bottom: 6px; font-size: 13px; }
+
+  /* ===== PROFILE ===== */
+  .profile-top {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--color-bg);
+  }
+  .avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .profile-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+  }
+  .profile-bio {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  /* ===== FAB ===== */
+  .fab {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.4);
+    cursor: pointer;
+    z-index: 20;
+    transition: transform 0.15s;
+  }
+  .fab:active { transform: scale(0.9); }
+
+  .divider { height: 1px; background: var(--color-border); margin: 0 20px; }
+
+  /* ===== BACK BUTTON ===== */
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-primary);
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    transition: opacity 0.15s;
+  }
+  .back-btn:active { opacity: 0.6; }
+  .back-btn-aqua {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-accent-strong);
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    transition: opacity 0.15s;
+  }
+  .back-btn-aqua:active { opacity: 0.6; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0F172A;
+    color: #E2E8F0;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 200;
+    pointer-events: none;
+    max-width: 280px;
+    text-align: center;
+    white-space: normal;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.success { background: #064E3B; color: #6EE7B7; }
+  .toast.error { background: #7F1D1D; color: #FCA5A5; }
+
+  /* ===== READING BAR ===== */
+  .reading-bar { background: var(--color-border); height: 4px; border-radius: 2px; margin-bottom: 12px; }
+  .reading-fill { background: var(--color-primary); height: 4px; border-radius: 2px; width: 34%; }
+
+  /* ===== TAPPABLE ===== */
+  .tappable { cursor: pointer; transition: opacity 0.15s; }
+  .tappable:active { opacity: 0.7; }
+
+  /* ===== MODAL OVERLAY ===== */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-sheet {
+    background: var(--color-surface);
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px 40px;
+    width: 100%;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .modal-overlay.show .modal-sheet { transform: translateY(0); }
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--color-border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 6px;
+  }
+  .modal-sub {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    text-align: center;
+    gap: 8px;
+  }
+  .empty-state-icon { font-size: 36px; margin-bottom: 4px; }
+  .empty-state-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .empty-state-desc {
+    font-size: 13px;
+    color: var(--color-text-disabled);
+    line-height: 1.5;
+  }
+
+  /* ===== SKELETON LOADER ===== */
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-border) 25%, var(--color-surface-alt) 50%, var(--color-border) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-wave 1.5s infinite;
+    border-radius: 8px;
+  }
+  @keyframes skeleton-wave {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skeleton-card {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+  .skeleton-line {
+    height: 14px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  /* ===== DARK HEADER AREAS ===== */
+  .amigos-header {
+    background: linear-gradient(160deg, #0F2B24 0%, #163D30 100%);
+    padding: 20px 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .amigos-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    right: -30px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(136,216,192,0.15) 0%, transparent 70%);
+  }
+  .amigos-header .screen-title { color: #E2E8F0; }
+  .amigos-header .screen-subtitle { color: #88D8C0; opacity: 0.8; }
+
+  .friend-detail-header {
+    background: linear-gradient(160deg, #0F2B24 0%, #163D30 100%);
+    padding: 20px;
+  }
+  .friend-detail-name {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 800;
+    color: #E2E8F0;
+    letter-spacing: -0.5px;
+  }
+  .friend-detail-vibe {
+    font-size: 13px;
+    color: #88D8C0;
+    margin-top: 4px;
+    opacity: 0.85;
+    font-style: italic;
+  }
+
+  .moment-header {
+    background: linear-gradient(160deg, #0F172A 0%, #1E3A5F 100%);
+    padding: 20px;
+  }
+  .moment-header .screen-title { color: #E2E8F0; }
+  .moment-header .screen-subtitle { color: var(--color-accent); opacity: 0.8; }
+
+  /* ===== PEOPLE TAGS ===== */
+  .people-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .person-tag {
+    background: rgba(136,216,192,0.15);
+    border: 1px solid rgba(136,216,192,0.3);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-accent);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ===== PLAYLIST ===== */
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .playlist-item:last-child { border-bottom: none; }
+  .playlist-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .playlist-info { flex: 1; }
+  .playlist-name { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+  .playlist-meta { font-size: 11px; color: var(--color-text-secondary); }
+
+  /* ===== TIMELINE PHASE DIVIDER ===== */
+  .phase-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0 8px;
+  }
+  .phase-divider-line { flex: 1; height: 1px; background: var(--color-border); }
+  .phase-divider-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text-disabled);
+    font-family: var(--font-display);
+  }
+
+  /* ===== DARK MODE TOGGLE ===== */
+  .dark-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    font-family: var(--font-display);
+    cursor: pointer;
+    padding: 8px 0;
+  }
+  .toggle-pill {
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--color-border);
+    position: relative;
+    transition: background 0.3s;
+  }
+  .toggle-pill.on { background: var(--color-primary); }
+  .toggle-knob {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: left 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle-pill.on .toggle-knob { left: 18px; }
+
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="phone-frame" id="phone">
+    <div class="notch"></div>
+
+
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Modal overlay -->
+    <div class="modal-overlay" id="modal" onclick="closeModal()">
+      <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div id="modal-content"></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: ONBOARD 1         -->
+    <!-- ========================= -->
+    <div class="screen active" id="screen-onboard1" style="background: linear-gradient(160deg, #0F172A 0%, #1E293B 100%);">
+      <div class="status-bar dark">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span style="margin-left:2px;">WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="onboard-screen">
+        <div>
+          <div class="onboard-progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+          </div>
+          <div class="onboard-illustration">👋</div>
+          <div class="onboard-title">Oi, eu sou a Evellyn.</div>
+          <div class="onboard-sub">E esse é o meu jeito de organizar a vida, entre uma coisa e outra.</div>
+        </div>
+        <button class="btn-onboard" onclick="goTo('onboard2')">
+          <span>🎧 Dar play na minha rotina</span>
+          <span>→</span>
+        </button>
+      </div>
+      <!-- Bottom nav even on onboarding - skeleton version -->
+      <div class="bottom-nav" data-onboard="true" style="background:#0F172A;border-top-color:rgba(255,255,255,0.05);">
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🏠</div><span class="nav-text" style="color:#94A3B8;">Hoje</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✅</div><span class="nav-text" style="color:#94A3B8;">Rotina</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✨</div><span class="nav-text" style="color:#94A3B8;">Prazer</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🔍</div><span class="nav-text" style="color:#94A3B8;">Explorar</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">👤</div><span class="nav-text" style="color:#94A3B8;">Perfil</span></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: ONBOARD 2         -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-onboard2" style="background: linear-gradient(160deg, #0F172A 0%, #1E293B 100%);">
+      <div class="status-bar dark">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="onboard-screen">
+        <div>
+          <div class="onboard-progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+          </div>
+          <span class="onboard-emoji">🗺️</span>
+          <div class="onboard-title">De onde eu vim e onde eu caí.</div>
+          <div class="onboard-sub">Nordestina em São Paulo, sobrevivendo a metrôs lotados, deadlines e boletos, sempre com uma boa trilha sonora.</div>
+        </div>
+        <button class="btn-onboard" onclick="goTo('onboard3')">
+          <span>🫵 Continuar</span>
+          <span>→</span>
+        </button>
+      </div>
+      <div class="bottom-nav" data-onboard="true" style="background:#0F172A;border-top-color:rgba(255,255,255,0.05);">
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🏠</div><span class="nav-text" style="color:#94A3B8;">Hoje</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✅</div><span class="nav-text" style="color:#94A3B8;">Rotina</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✨</div><span class="nav-text" style="color:#94A3B8;">Prazer</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🔍</div><span class="nav-text" style="color:#94A3B8;">Explorar</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">👤</div><span class="nav-text" style="color:#94A3B8;">Perfil</span></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: ONBOARD 3         -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-onboard3" style="background: linear-gradient(160deg, #0F172A 0%, #1E293B 100%);">
+      <div class="status-bar dark">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="onboard-screen">
+        <div>
+          <div class="onboard-progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+          </div>
+          <span class="onboard-emoji">📱</span>
+          <div class="onboard-title">Aqui vai tudo que importa.</div>
+          <div class="onboard-sub">Tarefas, shows, leituras, amigos e aquele espaço pra não esquecer do que vale.</div>
+          <div class="chips" style="margin-top:16px;">
+            <div class="chip active" onclick="this.classList.toggle('active')">🏠 Casa</div>
+            <div class="chip active" onclick="this.classList.toggle('active')">💼 Trabalho</div>
+            <div class="chip active" onclick="this.classList.toggle('active')">🐾 Pets</div>
+            <div class="chip" onclick="this.classList.toggle('active')">🎤 Shows</div>
+            <div class="chip" onclick="this.classList.toggle('active')">📚 Leitura</div>
+            <div class="chip" onclick="this.classList.toggle('active')">🏎️ Esportes</div>
+          </div>
+        </div>
+        <button class="btn-onboard" onclick="goTo('onboard4')">
+          <span>🎯 Isso aqui é minha vida</span>
+          <span>→</span>
+        </button>
+      </div>
+      <div class="bottom-nav" data-onboard="true" style="background:#0F172A;border-top-color:rgba(255,255,255,0.05);">
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🏠</div><span class="nav-text" style="color:#94A3B8;">Hoje</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✅</div><span class="nav-text" style="color:#94A3B8;">Rotina</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✨</div><span class="nav-text" style="color:#94A3B8;">Prazer</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🔍</div><span class="nav-text" style="color:#94A3B8;">Explorar</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">👤</div><span class="nav-text" style="color:#94A3B8;">Perfil</span></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: ONBOARD 4         -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-onboard4" style="background: linear-gradient(160deg, #0F172A 0%, #1E293B 100%);">
+      <div class="status-bar dark">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="onboard-screen">
+        <div>
+          <div class="onboard-progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+          </div>
+          <span class="onboard-emoji">✨</span>
+          <div class="onboard-title">Tudo pronto.</div>
+          <div class="onboard-sub">Sério. A gente faz a vida caber aqui. Sem drama.</div>
+        </div>
+        <button class="btn-onboard" onclick="navTo('home')">
+          <span>🚀 Entrar no evycore</span>
+          <span>→</span>
+        </button>
+      </div>
+      <div class="bottom-nav" data-onboard="true" style="background:#0F172A;border-top-color:rgba(255,255,255,0.05);">
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🏠</div><span class="nav-text" style="color:#94A3B8;">Hoje</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✅</div><span class="nav-text" style="color:#94A3B8;">Rotina</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">✨</div><span class="nav-text" style="color:#94A3B8;">Prazer</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">🔍</div><span class="nav-text" style="color:#94A3B8;">Explorar</span></div>
+        <div class="nav-item" style="opacity:0.2;"><div class="nav-icon">👤</div><span class="nav-text" style="color:#94A3B8;">Perfil</span></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: HOME              -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-home">
+      <div class="status-bar">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span style="margin-left:2px;">WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="light-screen">
+        <div class="home-top">
+          <div class="home-date" id="home-date-label">Segunda, 27 Abr</div>
+          <div class="home-greeting">bom dia, Evellyn ☀️</div>
+          <div class="phase-badge" id="phase-badge">🌅 Manhã — foco nas tarefas</div>
+        </div>
+        <div class="screen-scroll">
+          <div class="p20 pb100" style="padding-top:12px;">
+
+            <!-- Progress geral do dia -->
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header" style="margin-bottom:6px;">
+                <div class="card-title">📊 Como tá o dia</div>
+                <span id="task-count-label" style="font-size:11px;font-weight:700;color:var(--color-text-disabled);font-family:var(--font-display);">2 / 5 feitas</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="day-progress-bar" style="width:40%;"></div>
+              </div>
+              <div class="microcopy" id="day-progress-msg">isso aqui tá indo. segue.</div>
+            </div>
+
+            <!-- PHASE: Manhã — ROTINA -->
+            <div class="phase-divider">
+              <div class="phase-divider-line"></div>
+              <div class="phase-divider-label">🌅 rotina de hoje</div>
+              <div class="phase-divider-line"></div>
+            </div>
+
+            <!-- Card Trabalho (rotina) -->
+            <div class="card card--rotina tappable" onclick="goTo('rotina-trabalho')">
+              <div class="card-header">
+                <div>
+                  <div class="card-title-lg">💼 Trabalho</div>
+                  <div class="microcopy">reunião em 20 min, aproveitou?</div>
+                </div>
+                <button class="btn-ghost" onclick="event.stopPropagation(); goTo('rotina-trabalho')">Ver tudo →</button>
+              </div>
+              <div class="task-item">
+                <div class="task-check done" onclick="event.stopPropagation(); toggleCheck(this,'home')">✓</div>
+                <span style="text-decoration:line-through;color:var(--color-text-disabled);">Daily — 9:00</span>
+                <span class="task-time">✓</span>
+              </div>
+              <div class="task-item">
+                <div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'home')"></div>
+                <span class="task-label">Reunião com time</span>
+                <span class="task-time">10:00</span>
+              </div>
+              <div class="task-item">
+                <div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'home')"></div>
+                <span class="task-label">Revisar entrega</span>
+              </div>
+              <div class="cta-strip" onclick="goTo('rotina-trabalho')">continua por aqui → <span style="font-size:11px;color:var(--color-text-disabled);font-weight:400;font-style:italic">mais 2 tarefas</span></div>
+            </div>
+
+            <!-- Card Casa -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title-lg">🏡 Casa</div>
+                  <div class="microcopy">que saudade de mamãe</div>
+                </div>
+                <button class="btn-ghost" onclick="showToast('🏡 Ver tudo — em breve!')">Ver tudo →</button>
+              </div>
+              <div class="task-item">
+                <div class="task-check" onclick="toggleCheck(this,'home')"></div>
+                <span class="task-label">Pagar conta</span>
+              </div>
+              <div class="task-item">
+                <div class="task-check done" onclick="toggleCheck(this,'home')">✓</div>
+                <span style="text-decoration:line-through;color:var(--color-text-disabled);">Fazer mercado</span>
+              </div>
+            </div>
+
+            <!-- PHASE: Tarde — PETS -->
+            <div class="phase-divider" style="margin-top:4px;">
+              <div class="phase-divider-line"></div>
+              <div class="phase-divider-label">🌤 lembre deles</div>
+              <div class="phase-divider-line"></div>
+            </div>
+
+            <div class="card-aqua tappable" onclick="goTo('pets-detail')">
+              <div class="card-header" style="margin-bottom:0;">
+                <div>
+                  <div class="card-title-lg">🐾 Paco & Apolo</div>
+                  <div class="card-body" style="margin-bottom:4px;">eles ainda não passearam. e perceberam.</div>
+                </div>
+              </div>
+              <div class="cta-strip aqua" onclick="event.stopPropagation(); goTo('pets-detail')">pra fechar o dia → <span style="font-size:11px;color:var(--color-text-disabled);font-weight:400;font-style:italic">passeio tarde</span></div>
+            </div>
+
+            <!-- PHASE: Noite — PRAZER -->
+            <div class="phase-divider">
+              <div class="phase-divider-line"></div>
+              <div class="phase-divider-label">✨ modo off — noite</div>
+              <div class="phase-divider-line"></div>
+            </div>
+
+            <!-- Card Shows (prazer) -->
+            <div class="card card--prazer tappable" onclick="navTo('shows')">
+              <div class="card-header" style="margin-bottom:0;">
+                <div>
+                  <div class="card-title-lg">🎤 Shows</div>
+                  <div class="card-body" style="margin-bottom:4px;">CA7RIEL — a gente não esquece.</div>
+                </div>
+              </div>
+              <button class="btn-small-aqua" style="margin-top:4px;">Ver detalhes →</button>
+            </div>
+
+            <!-- Card Livro -->
+            <div class="card tappable" onclick="navTo('livros')">
+              <div class="card-title-lg">📚 Livro</div>
+              <div class="card-body">Página 310. Você parou aqui.</div>
+              <div class="reading-bar"><div class="reading-fill"></div></div>
+              <div class="cta-strip" onclick="event.stopPropagation(); navTo('livros')">já que você começou → <span style="font-size:11px;color:var(--color-text-disabled);font-weight:400;font-style:italic">65% concluído</span></div>
+            </div>
+
+            <!-- Card amigos -->
+            <div class="card-friends tappable" onclick="navTo('amigos')">
+              <div class="card-title-lg">👥 Com quem você anda?</div>
+              <div class="card-body" style="margin-bottom:6px;">Aniversário da Ana hoje. ela claramente sabe.</div>
+              <div class="cta-strip aqua" onclick="event.stopPropagation(); navTo('amigos')">ver amigos →</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav" id="nav-home">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text">Explorar</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: ROTINA HUB        -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-rotina">
+      <div class="status-bar">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span style="margin-left:2px;">WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="light-screen">
+        <div class="screen-scroll">
+          <div class="p20 pb100" style="padding-top:20px;">
+            <div class="screen-title">Fazendo a vida caber</div>
+            <div class="screen-subtitle">a vida adulta acontecendo</div>
+            <div style="height:4px;"></div>
+
+            <!-- Progress geral da rotina -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;">
+              <span class="section-block-title" style="margin:0;">HOJE</span>
+              <span style="font-size:11px;font-weight:700;color:var(--color-accent-strong);font-family:var(--font-display);">3 / 8 feitas</span>
+            </div>
+            <div class="progress-bar-wrap" style="margin-bottom:16px;">
+              <div class="progress-bar-fill aqua" style="width:37%;"></div>
+            </div>
+
+            <!-- Casa -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title-lg">🏡 Casa</div>
+                  <div class="microcopy">que saudade de mamãe</div>
+                </div>
+                <button class="btn-ghost" onclick="showToast('🏡 Ver tudo — em breve!')">Ver tudo →</button>
+              </div>
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'rotina')"></div><span>Pagar conta</span></div>
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'rotina')"></div><span>Fazer mercado</span></div>
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'rotina')"></div><span>Limpeza</span></div>
+            </div>
+
+            <!-- Trabalho -->
+            <div class="card card--rotina tappable" onclick="goTo('rotina-trabalho')">
+              <div class="card-header">
+                <div>
+                  <div class="card-title-lg">💼 Trabalho</div>
+                  <div class="microcopy">foco, entregas e decisões do dia</div>
+                </div>
+                <button class="btn-ghost" onclick="event.stopPropagation(); goTo('rotina-trabalho')">Ver tudo →</button>
+              </div>
+              <div class="task-item"><div class="task-check done" onclick="event.stopPropagation(); toggleCheck(this,'rotina')">✓</div><span style="text-decoration:line-through;color:var(--color-text-disabled);">Reunião — 10h</span></div>
+              <div class="task-item"><div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'rotina')"></div><span>Revisar entrega</span></div>
+              <div class="task-item"><div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'rotina')"></div><span>Ajustes no projeto</span></div>
+              <div class="cta-strip" onclick="goTo('rotina-trabalho')" style="margin-top:4px;">continua por aqui →</div>
+            </div>
+
+            <!-- Pets -->
+            <div class="card-aqua tappable" onclick="goTo('pets-detail')">
+              <div class="card-title-lg">🐾 Paco & Apolo</div>
+              <div class="card-body">eles mandam mais do que parece</div>
+              <button class="btn-small-aqua">Ver detalhes →</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text">Explorar</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: ROTINA TRABALHO   -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-rotina-trabalho">
+      <div class="status-bar">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="light-screen">
+        <div class="screen-scroll" style="position:relative;">
+          <div class="p20 pb100" style="padding-top:20px;">
+            <button class="back-btn" onclick="goBack()">← Rotina</button>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-size:18px;">💼</span>
+              <div class="screen-title">Trabalho</div>
+            </div>
+            <div class="screen-subtitle">Entregas, ideias e uns ajustes pelo caminho</div>
+            <div style="height:8px;"></div>
+
+            <!-- Progress -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 4px;">
+              <span class="section-block-title" style="margin:0;">HOJE</span>
+              <span id="work-count" style="font-size:11px;font-weight:700;color:var(--color-primary);font-family:var(--font-display);">1 / 3 feitas</span>
+            </div>
+            <div class="progress-bar-wrap" style="margin-bottom:12px;">
+              <div class="progress-bar-fill" id="work-bar" style="width:33%;"></div>
+            </div>
+
+            <div class="card card--rotina">
+              <div class="task-item">
+                <div class="task-check done" onclick="toggleCheck(this,'work')">✓</div>
+                <span style="text-decoration:line-through;color:var(--color-text-disabled);">Daily</span>
+                <span class="task-time">9:00</span>
+              </div>
+              <div class="task-item">
+                <div class="task-check" onclick="toggleCheck(this,'work')"></div>
+                <span class="task-label">Reunião com time</span>
+                <span class="task-time">10:00</span>
+              </div>
+              <div class="task-item">
+                <div class="task-check" onclick="toggleCheck(this,'work')"></div>
+                <span class="task-label">Revisar entrega</span>
+              </div>
+            </div>
+
+            <div class="section-block-title">ESSA SEMANA</div>
+            <div class="card">
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'work')"></div><span>Projeto X — apresentação</span></div>
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'work')"></div><span>Ajustes no case</span></div>
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'work')"></div><span>Revisão de copy</span></div>
+            </div>
+
+            <div class="microcopy" style="text-align:center;padding:8px 0 12px;">vai dar tempo. a gente dá um jeito.</div>
+          </div>
+          <button class="fab" onclick="showModal('add-task')">+</button>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text">Explorar</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: PETS DETAIL       -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-pets-detail">
+      <div class="status-bar">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="light-screen">
+        <div class="screen-scroll">
+          <div class="p20 pb100" style="padding-top:20px;">
+            <button class="back-btn" onclick="goBack()">← Voltar</button>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-size:18px;">🐾</span>
+              <div class="screen-title">Paco & Apolo</div>
+            </div>
+            <div class="screen-subtitle">eles mandam mais do que parece</div>
+            <div style="height:16px;"></div>
+
+            <div class="section-block-title">HOJE</div>
+            <div class="card">
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'pets')"></div><span class="task-label">Passeio da manhã</span><span class="task-time">08:00</span></div>
+              <div class="task-item"><div class="task-check done" onclick="toggleCheck(this,'pets')">✓</div><span style="text-decoration:line-through;color:var(--color-text-disabled);">Ração</span><span class="task-time">07:30</span></div>
+              <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'pets')"></div><span class="task-label">Passeio da tarde</span><span class="task-time">17:00</span></div>
+            </div>
+
+            <div class="section-block-title">LEMBRETES</div>
+            <div class="card">
+              <div class="task-item"><span class="task-emoji">💊</span><span>Antiparasitário — próxima dose: 15/05</span></div>
+              <div class="task-item"><span class="task-emoji">🏥</span><span>Consulta vet — março</span></div>
+            </div>
+
+            <div class="card-aqua">
+              <div class="microcopy" style="font-style:normal;font-size:13px;">eles ainda não passearam. e sim, eles perceberam.</div>
+            </div>
+
+            <button class="btn-small-aqua" style="width:100%;padding:14px;border-radius:14px;font-size:14px;" onclick="onPetTaskDone()">Marcar passeio como feito ✓</button>
+
+            <div class="cta-strip aqua" style="justify-content:center;margin-top:8px;" onclick="showToast('🐾 Rotina completa dos pets — em breve!')">ver rotina completa →</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text">Explorar</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: PRAZER            -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-prazer">
+      <div class="status-bar">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="light-screen">
+        <div class="screen-scroll">
+          <div class="p20 pb100" style="padding-top:20px;">
+            <div class="screen-title">Modo off ✨</div>
+            <div class="screen-subtitle">onde eu recarrego entre uma coisa e outra</div>
+            <div style="height:12px;"></div>
+
+            <div class="tabs">
+              <div class="tab active" id="tab-shows" onclick="switchTab('shows')">🎤 Shows</div>
+              <div class="tab" id="tab-livros" onclick="switchTab('livros')">📚 Livros</div>
+              <div class="tab" id="tab-esportes" onclick="switchTab('esportes')">⚽ Esportes</div>
+            </div>
+
+            <!-- Shows content -->
+            <div id="prazer-shows">
+              <div class="section-block-title">QUERO IR</div>
+              <div class="card-aqua">
+                <div class="card-title-lg">🎸 CA7RIEL & Paco Amoroso</div>
+                <div class="card-body">18 nov · Espaço Unimed · R$ 195</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="btn-small-aqua" onclick="showToast('🎸 Abrindo detalhes...')">Ver detalhes →</button>
+                  <button class="btn-ghost-aqua" onclick="showToast('🔔 Lembrete ativado para CA7RIEL!')">Lembrete</button>
+                </div>
+              </div>
+
+              <div class="section-block-title">JÁ FUI</div>
+              <div class="card">
+                <div class="card-title-lg">🎤 My Chemical Romance</div>
+                <div class="card-body">Fevereiro 2026 · ★★★★★</div>
+                <div class="microcopy">financeiramente questionável. emocionalmente perfeito.</div>
+              </div>
+
+              <div style="height:8px;"></div>
+              <button class="btn-primary" onclick="showModal('add-show')">
+                <span>➕ Adicionar show</span>
+                <span>→</span>
+              </button>
+            </div>
+
+            <!-- Livros content -->
+            <div id="prazer-livros" style="display:none;">
+              <div class="microcopy" style="margin-bottom:12px;">ambição literária detectada</div>
+              <div class="section-block-title">LENDO AGORA</div>
+              <div class="card">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="width:44px;height:60px;background:linear-gradient(135deg,var(--color-accent),var(--color-primary));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📖</div>
+                  <div style="flex:1;">
+                    <div class="card-title-lg">Corte de Névoa e Fúria</div>
+                    <div style="font-size:12px;color:var(--color-text-secondary);">Sarah J. Maas · Página 310</div>
+                    <div class="progress-bar-wrap" style="margin-top:8px;margin-bottom:0;">
+                      <div class="progress-bar-fill aqua" style="width:65%;"></div>
+                    </div>
+                    <div class="progress-label">65%</div>
+                  </div>
+                </div>
+                <div class="cta-strip aqua" style="margin-top:8px;" onclick="showToast('📚 Continuando leitura...')">continua por aqui →</div>
+              </div>
+              <div class="section-block-title">QUERO LER</div>
+              <div class="card">
+                <div class="task-item" style="border:none;padding:4px 0;"><span style="font-size:20px;margin-right:8px;">📚</span><span>Corte de Asas e Ruína</span></div>
+                <div class="task-item" style="border:none;padding:4px 0;"><span style="font-size:20px;margin-right:8px;">📚</span><span>Corte de Chamas Prateadas</span></div>
+                <div class="task-item" style="border:none;padding:4px 0;"><span style="font-size:20px;margin-right:8px;">📚</span><span>Alchemised</span></div>
+              </div>
+            </div>
+
+            <!-- Esportes content -->
+            <div id="prazer-esportes" style="display:none;">
+              <div class="section-block-title">PRÓXIMOS</div>
+              <div class="card card-blue">
+                <div class="card-title-lg">🏎️ It's Race Week</div>
+                <div class="card-body">Ferrari corre hoje. Prioridades.</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:12px;color:var(--color-primary);font-weight:600;">Domingo · 17:00</span>
+                  <button class="btn-small" onclick="showToast('🏎️ Ver horário completo')">Ver horário →</button>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-title-lg">⚽ Vamo Flamengo!</div>
+                <div class="card-body">Flamengo vs Estudiantes</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:12px;color:var(--color-text-secondary);font-weight:600;">Amanhã · 21:30</span>
+                  <button class="btn-ghost" onclick="showToast('🔔 Lembrete ativado!')">Lembrete</button>
+                </div>
+              </div>
+
+              <div class="section-block-title">ALERTAS</div>
+              <div class="card">
+                <div class="task-item" style="border:none;"><div class="task-check done">✓</div><span>Notificação F1 ativada</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text">Explorar</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: EXPLORAR          -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-explorar">
+      <div class="status-bar">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="light-screen">
+        <div class="screen-scroll">
+          <div class="p20 pb100" style="padding-top:20px;">
+            <div class="screen-title">Explorar 🔍</div>
+            <div class="screen-subtitle">achadinhos pra ocupar a cabeça (do jeito certo)</div>
+            <div style="height:16px;"></div>
+
+            <div class="explore-card tappable" onclick="navTo('amigos')" style="border:1.5px solid #A8E4D6;">
+              <div class="explore-img friends">👥</div>
+              <div class="explore-body" style="background:#F0FBF8;">
+                <div class="card-title-lg">Com quem sua vida anda tocando?</div>
+                <div class="card-body">Momentos, playlists e histórias com quem faz parte disso tudo</div>
+                <button class="btn-small-aqua">👉 Ver amigos →</button>
+              </div>
+            </div>
+
+            <div class="explore-card tappable" onclick="showToast('🎵 Show: Lineup Rock in Rio')">
+              <div class="explore-img music">🎵</div>
+              <div class="explore-body">
+                <div class="card-title-lg">Show: Lineup Rock in Rio</div>
+                <div class="card-body">Baseado nos seus interesses</div>
+                <button class="btn-small-aqua">Ver evento →</button>
+              </div>
+            </div>
+
+            <div class="explore-card tappable" onclick="navTo('livros')">
+              <div class="explore-img book">📖</div>
+              <div class="explore-body">
+                <div class="card-title-lg">Livro da vez</div>
+                <div class="card-body">Porque você gostou de O Nome do Vento</div>
+                <button class="btn-small">Salvar →</button>
+              </div>
+            </div>
+
+            <div class="explore-card tappable" onclick="navTo('esportes')">
+              <div class="explore-img sport">🏎️</div>
+              <div class="explore-body">
+                <div class="card-title-lg">Próxima corrida</div>
+                <div class="card-body">Ferrari tem chance. Talvez.</div>
+                <button class="btn-small">Ver detalhes →</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text">Explorar</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: PERFIL            -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-perfil">
+      <div class="status-bar">
+        <span style="font-family:var(--font-display);font-weight:700;">9:41</span>
+        <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="light-screen">
+        <div class="profile-top">
+          <div class="avatar tappable" onclick="showToast('👩🏽 Oi, eu sou a Evellyn!')">👩🏽</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div class="profile-name">Evellyn</div>
+              <div class="chip-light tappable" onclick="navTo('amigos')" style="cursor:pointer;">👥 Feat. amigos</div>
+            </div>
+            <div class="profile-bio">Nordestina em SP, escrevendo experiências e vivendo outras tantas</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="screen-scroll">
+          <div class="p20 pb100" style="padding-top:16px;">
+
+            <div class="section-block-title">TRABALHO</div>
+            <div class="card card--rotina tappable" onclick="window.open('https://www.evellynbatista.com.br/projetos','_blank')">
+              <div class="card-title-lg">Projetos que eu amei participar</div>
+              <div class="card-body">coisas que eu construí e tenho orgulho de mostrar.</div>
+              <button class="btn-primary" onclick="event.stopPropagation(); window.open('https://www.evellynbatista.com.br/projetos','_blank')">
+                <span>👉 Ver portfólio</span>
+                <span>↗</span>
+              </button>
+            </div>
+
+            <div class="section-block-title">SOBRE MIM</div>
+            <div class="card-aqua">
+              <div class="card-body" style="margin-bottom:0;">
+                Em SP, entre metrôs cheios e uma rotina que não desacelera, fui encontrando meu jeito de fazer as coisas acontecerem. Trabalho com palavras porque acredito que texto também é interface e que toda interface pode ser mais humana.
+              </div>
+            </div>
+
+            <div class="section-block-title">INTERESSES</div>
+            <div class="chips" style="margin-bottom:16px;">
+              <div class="chip tappable" onclick="goTo('pets-detail')">🐶 Pets</div>
+              <div class="chip tappable" onclick="navTo('shows')">🎤 Shows</div>
+              <div class="chip tappable" onclick="navTo('livros')">📚 Livros</div>
+              <div class="chip tappable" onclick="navTo('esportes')">🏎️ F1</div>
+              <div class="chip tappable" onclick="showToast('✍️ UX Writing — o que faz a Evellyn')">✍️ UX Writing</div>
+              <div class="chip tappable" onclick="navTo('amigos')" style="background:rgba(136,216,192,0.15);border-color:var(--color-accent);color:var(--color-accent);font-weight:700;">👥 Amigos</div>
+            </div>
+
+            <!-- Dark mode toggle -->
+            <div class="section-block-title">PREFERÊNCIAS</div>
+            <div class="card">
+              <div class="dark-toggle" onclick="toggleDarkMode()">
+                <span>🌙 Modo escuro</span>
+                <div style="flex:1;"></div>
+                <div class="toggle-pill" id="dark-toggle-pill">
+                  <div class="toggle-knob"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text">Explorar</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: AMIGOS HUB        -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-amigos">
+      <div class="status-bar dark" style="background:linear-gradient(160deg, #0F2B24 0%, #163D30 100%);">
+        <span style="font-family:var(--font-display);font-weight:700;color:#94A3B8;">9:41</span>
+        <div class="status-icons" style="color:#94A3B8;"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="amigos-header">
+          <button class="back-btn-aqua" onclick="goBack()">← Voltar</button>
+          <div class="screen-title">Feat. pessoas</div>
+          <div class="screen-subtitle">quem aparece, quem faz parte</div>
+          <div style="display:flex;align-items:center;gap:-8px;margin-top:12px;">
+            <div class="friend-avatar">🌸</div>
+            <div class="friend-avatar">⚡</div>
+            <div class="friend-avatar">🌿</div>
+            <span style="font-size:12px;color:#88D8C0;margin-left:16px;font-weight:600;">3 pessoas que aparecem</span>
+          </div>
+        </div>
+        <div class="screen-scroll" style="background:var(--color-bg);">
+          <div class="p20 pb100" style="padding-top:16px;">
+
+            <!-- Próximo encontro -->
+            <div class="section-block-title">EM BREVE</div>
+            <div class="card-aqua tappable" onclick="showToast('🎂 Abrindo planejamento...')">
+              <div class="card-title-lg">🎂 Aniversário da Ana — Hoje</div>
+              <div class="card-body" style="margin-bottom:6px;">ela sabe que você não esqueceu (ou sabe?)</div>
+              <div class="people-row">
+                <div class="friend-avatar" style="width:28px;height:28px;font-size:12px;margin-right:-4px;">🌸</div>
+                <div class="friend-avatar" style="width:28px;height:28px;font-size:12px;">⚡</div>
+                <span style="font-size:11px;color:var(--color-accent-strong);margin-left:12px;font-weight:600;align-self:center;">2 pessoas já sabem</span>
+              </div>
+              <div class="btn-row">
+                <button class="btn-small-aqua" onclick="event.stopPropagation(); showToast('🎵 Criando playlist...')">👉 Criar playlist</button>
+                <button class="btn-small-aqua" onclick="event.stopPropagation(); showToast('💡 Ver ideias...')">Ver ideias</button>
+              </div>
+            </div>
+
+            <div class="section-block-title" style="margin-top:8px;">PESSOAS</div>
+
+            <div class="friend-card" onclick="navTo('amigo-ana')">
+              <div class="friend-card-avatar" style="background:linear-gradient(135deg,#FDA4AF,#F43F5E);">🌸</div>
+              <div class="friend-card-info">
+                <div class="friend-card-name">Ana <span style="font-size:11px;background:var(--color-accent-soft);color:var(--color-accent-strong);border-radius:8px;padding:2px 6px;font-weight:700;">🎂 hoje</span></div>
+                <div class="friend-card-vibe">indie triste + cafés caros</div>
+              </div>
+              <span style="color:var(--color-text-disabled);font-size:18px;">›</span>
+            </div>
+
+            <div class="friend-card" onclick="showToast('🎵 Abrindo perfil do Lucas...')">
+              <div class="friend-card-avatar" style="background:linear-gradient(135deg,#A5B4FC,#818CF8);">⚡</div>
+              <div class="friend-card-info">
+                <div class="friend-card-name">Lucas</div>
+                <div class="friend-card-vibe">funk + energia questionável</div>
+              </div>
+              <span style="color:var(--color-text-disabled);font-size:18px;">›</span>
+            </div>
+
+            <div class="friend-card" onclick="showToast('✨ Abrindo perfil da Marina...')">
+              <div class="friend-card-avatar" style="background:linear-gradient(135deg,#6EE7B7,#34D399);">🌿</div>
+              <div class="friend-card-info">
+                <div class="friend-card-name">Marina</div>
+                <div class="friend-card-vibe">pop + organização que dá inveja</div>
+              </div>
+              <span style="color:var(--color-text-disabled);font-size:18px;">›</span>
+            </div>
+
+            <button class="btn-ghost-aqua" style="width:100%;text-align:center;padding:10px;margin-bottom:16px;" onclick="showToast('👥 Ver todos — em breve!')">👉 Ver todos</button>
+
+            <div class="section-block-title">MOMENTOS</div>
+            <div class="microcopy" style="margin-bottom:10px;">tem história aqui (nem todas recomendáveis)</div>
+
+            <div class="moment-card tappable" onclick="navTo('momento-viagem')">
+              <div class="moment-top">
+                <div>
+                  <div class="card-title-lg">✈️ Viagem 2023</div>
+                  <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">3 pessoas, zero planejamento</div>
+                </div>
+                <span style="font-size:20px;">📸</span>
+              </div>
+              <div class="people-row">
+                <div class="person-tag">🌸 Ana</div>
+                <div class="person-tag">⚡ Lucas</div>
+                <div class="person-tag">🌿 Marina</div>
+              </div>
+            </div>
+
+            <div class="moment-card tappable" onclick="navTo('momento-noite')">
+              <div class="moment-top">
+                <div>
+                  <div class="card-title-lg">🌙 Noite que virou história</div>
+                  <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">ninguém lembra direito, mas foi ótimo</div>
+                </div>
+                <span style="font-size:20px;">🎵</span>
+              </div>
+              <div class="people-row">
+                <div class="person-tag">🌸 Ana</div>
+                <div class="person-tag">⚡ Lucas</div>
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn-small-aqua" style="padding:12px;" onclick="showToast('📚 Abrindo histórico...')">👉 Ver tudo</button>
+              <button class="btn-aqua" style="border-radius:10px;padding:12px 16px;font-size:13px;" onclick="showToast('✨ Criando novo momento...')">+ Criar momento</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav dark-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text" style="color:var(--color-accent-strong);">Explorar</span><div class="nav-dot" style="background:var(--color-accent-strong);opacity:1;"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: AMIGO ANA         -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-amigo-ana">
+      <div class="status-bar dark" style="background:linear-gradient(160deg, #0F2B24 0%, #163D30 100%);">
+        <span style="font-family:var(--font-display);font-weight:700;color:#94A3B8;">9:41</span>
+        <div class="status-icons" style="color:#94A3B8;"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="friend-detail-header">
+          <button class="back-btn-aqua" onclick="goBack()">← Amigos</button>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#FDA4AF,#F43F5E);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌸</div>
+            <div>
+              <div class="friend-detail-name">Ana</div>
+              <div class="friend-detail-vibe">trilha sonora oficial: sentimentos intensos e cafés longos</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <div class="chip-light">🎂 Aniversário hoje</div>
+            <div class="chip-light">👥 Feat. desde 2020</div>
+          </div>
+        </div>
+        <div class="screen-scroll" style="background:var(--color-bg);">
+          <div class="p20 pb100" style="padding-top:16px;">
+
+            <div class="section-block-title">🎧 PLAYLISTS COMPARTILHADAS</div>
+            <div class="card-aqua">
+              <div class="playlist-item">
+                <div class="playlist-thumb" style="background:linear-gradient(135deg,#FDA4AF,#F43F5E);">😭</div>
+                <div class="playlist-info">
+                  <div class="playlist-name">"a gente dramático demais"</div>
+                  <div class="playlist-meta">23 músicas · isso aqui começou inocente</div>
+                </div>
+                <button class="btn-small-aqua" onclick="showToast('🎵 Abrindo playlist...')">▶</button>
+              </div>
+              <div class="playlist-item">
+                <div class="playlist-thumb" style="background:linear-gradient(135deg,#818CF8,#6366F1);">🌙</div>
+                <div class="playlist-info">
+                  <div class="playlist-name">"noite que deu errado (perfeito)"</div>
+                  <div class="playlist-meta">17 músicas · vocês chamaram isso de plano</div>
+                </div>
+                <button class="btn-small-aqua" onclick="showToast('🎵 Abrindo playlist...')">▶</button>
+              </div>
+            </div>
+            <button class="btn-small-aqua" style="width:100%;text-align:center;padding:10px;border-radius:10px;margin-bottom:16px;" onclick="showToast('🎵 Adicionando música...')">👉 Adicionar música</button>
+
+            <div class="section-block-title">📸 MOMENTOS</div>
+            <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;">
+              <div class="moment-card tappable" style="min-width:130px;margin-bottom:0;" onclick="navTo('momento-viagem')">
+                <div style="font-size:28px;text-align:center;margin-bottom:4px;">✈️</div>
+                <div class="playlist-name" style="text-align:center;font-size:12px;">Viagem</div>
+              </div>
+              <div class="moment-card tappable" style="min-width:130px;margin-bottom:0;" onclick="navTo('momento-noite')">
+                <div style="font-size:28px;text-align:center;margin-bottom:4px;">🌙</div>
+                <div class="playlist-name" style="text-align:center;font-size:12px;">Rolê</div>
+              </div>
+              <div class="moment-card" style="min-width:100px;margin-bottom:0;display:flex;align-items:center;justify-content:center;background:var(--color-accent-soft);border:1.5px dashed #A8E4D6;">
+                <div style="text-align:center;color:var(--color-accent-strong);font-size:12px;font-weight:600;">+ Criar</div>
+              </div>
+            </div>
+            <button class="btn-small-aqua" style="width:100%;text-align:center;padding:10px;border-radius:10px;margin-bottom:16px;" onclick="showToast('✨ Criando novo momento...')">👉 Criar novo momento</button>
+
+            <div class="section-block-title">🎂 DATAS IMPORTANTES</div>
+            <div class="card">
+              <div class="task-item">
+                <span class="task-emoji">🎂</span>
+                <span class="task-label">Aniversário — Hoje!</span>
+                <div class="chip-light" style="font-size:10px;">hoje</div>
+              </div>
+              <div class="task-item">
+                <span class="task-emoji">🎪</span>
+                <span class="task-label">Show CA7RIEL — Nov</span>
+                <span class="task-time">18/11</span>
+              </div>
+            </div>
+            <button class="btn-ghost-aqua" style="width:100%;text-align:center;padding:10px;margin-bottom:8px;" onclick="showToast('🔔 Lembrete ativado!')">👉 Ativar lembrete</button>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav dark-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text" style="color:var(--color-accent-strong);">Explorar</span><div class="nav-dot" style="background:var(--color-accent-strong);opacity:1;"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: MOMENTO NOITE     -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-momento-noite">
+      <div class="status-bar dark" style="background:linear-gradient(160deg, #0F172A 0%, #1E3A5F 100%);">
+        <span style="font-family:var(--font-display);font-weight:700;color:#94A3B8;">9:41</span>
+        <div class="status-icons" style="color:#94A3B8;"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="moment-header">
+          <button class="back-btn-aqua" onclick="goBack()">← Voltar</button>
+          <div style="font-size:32px;margin-bottom:8px;">🌙</div>
+          <div class="screen-title" style="color:#E2E8F0;">Noite que virou história</div>
+          <div class="screen-subtitle" style="color:var(--color-accent);opacity:0.8;">ninguém lembra tudo, mas a playlist sabe</div>
+          <div class="people-row" style="margin-top:10px;">
+            <div class="person-tag">🌸 Ana</div>
+            <div class="person-tag">⚡ Lucas</div>
+            <div class="person-tag">👩🏽 Evellyn</div>
+          </div>
+        </div>
+        <div class="screen-scroll" style="background:var(--color-bg);">
+          <div class="p20 pb100" style="padding-top:16px;">
+
+            <div class="section-block-title">🎧 PLAYLIST DO MOMENTO</div>
+            <div class="card-aqua">
+              <div class="playlist-item">
+                <div class="playlist-thumb" style="background:linear-gradient(135deg,#818CF8,#6366F1);">🎸</div>
+                <div class="playlist-info">
+                  <div class="playlist-name">Teenagers — MCR</div>
+                  <div class="playlist-meta">adicionada às 23:42 · decisão duvidosa</div>
+                </div>
+              </div>
+              <div class="playlist-item">
+                <div class="playlist-thumb" style="background:linear-gradient(135deg,#FDA4AF,#F43F5E);">💃</div>
+                <div class="playlist-info">
+                  <div class="playlist-name">Bateu Virou — Luísa Sonza</div>
+                  <div class="playlist-meta">adicionada às 00:15 · virada do mood</div>
+                </div>
+              </div>
+              <div class="playlist-item" style="border:none;">
+                <div class="playlist-thumb" style="background:linear-gradient(135deg,#6EE7B7,#34D399);">🌙</div>
+                <div class="playlist-info">
+                  <div class="playlist-name">Slow Down — Chase Atlantic</div>
+                  <div class="playlist-meta">adicionada às 02:30 · todo mundo já cansado</div>
+                </div>
+              </div>
+            </div>
+            <button class="btn-small-aqua" style="width:100%;text-align:center;padding:10px;border-radius:10px;margin-bottom:16px;" onclick="showToast('🎵 Adicionando música ao momento...')">👉 Adicionar música</button>
+
+            <div class="section-block-title">📍 CONTEXTO</div>
+            <div class="card">
+              <div class="card-body" style="margin-bottom:0;font-style:italic;">"Começou com um plano simples. Vocês chamaram isso de plano. Terminou às 4h com todo mundo em alguma lanchonete discutindo filosofia de boteco."</div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn-aqua" style="border-radius:10px;font-size:13px;" onclick="showToast('📝 Adicionando memória...')">+ Adicionar memória</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav dark-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text" style="color:var(--color-accent-strong);">Explorar</span><div class="nav-dot" style="background:var(--color-accent-strong);opacity:1;"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SCREEN: MOMENTO VIAGEM    -->
+    <!-- ========================= -->
+    <div class="screen" id="screen-momento-viagem">
+      <div class="status-bar dark" style="background:linear-gradient(160deg, #0F172A 0%, #1E3A5F 100%);">
+        <span style="font-family:var(--font-display);font-weight:700;color:#94A3B8;">9:41</span>
+        <div class="status-icons" style="color:#94A3B8;"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="moment-header">
+          <button class="back-btn-aqua" onclick="goBack()">← Voltar</button>
+          <div style="font-size:32px;margin-bottom:8px;">✈️</div>
+          <div class="screen-title" style="color:#E2E8F0;">Viagem 2023</div>
+          <div class="screen-subtitle" style="color:var(--color-accent);opacity:0.8;">3 pessoas, zero planejamento</div>
+          <div class="people-row" style="margin-top:10px;">
+            <div class="person-tag">🌸 Ana</div>
+            <div class="person-tag">⚡ Lucas</div>
+            <div class="person-tag">🌿 Marina</div>
+            <div class="person-tag">👩🏽 Evellyn</div>
+          </div>
+        </div>
+        <div class="screen-scroll" style="background:var(--color-bg);">
+          <div class="p20 pb100" style="padding-top:16px;">
+
+            <div class="section-block-title">🎧 PLAYLIST DA VIAGEM</div>
+            <div class="card-aqua">
+              <div class="playlist-item">
+                <div class="playlist-thumb" style="background:linear-gradient(135deg,#F59E0B,#D97706);">🚗</div>
+                <div class="playlist-info">
+                  <div class="playlist-name">Road Trip Dramático</div>
+                  <div class="playlist-meta">34 músicas · isso começou no Spotify dela</div>
+                </div>
+                <button class="btn-small-aqua" onclick="showToast('▶ Tocando...')">▶</button>
+              </div>
+            </div>
+
+            <div class="section-block-title">📸 MEMÓRIAS</div>
+            <div class="card">
+              <div class="task-item"><span style="font-size:18px;margin-right:8px;">🌅</span><span>Amanhecer que compensou tudo</span></div>
+              <div class="task-item"><span style="font-size:18px;margin-right:8px;">🍕</span><span>Pizza às 2h que foi necessária</span></div>
+              <div class="task-item" style="border:none;"><span style="font-size:18px;margin-right:8px;">🗺️</span><span>O GPS que claramente errou</span></div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn-small-aqua" style="padding:12px;" onclick="showToast('🎵 Adicionando música...')">+ Música</button>
+              <button class="btn-aqua" style="border-radius:10px;font-size:13px;" onclick="showToast('📝 Adicionando memória...')">+ Memória</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav dark-nav">
+        <div class="nav-item" data-route="home" onclick="navTo('home')"><div class="nav-icon">🏠</div><span class="nav-text">Hoje</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="rotina" onclick="navTo('rotina')"><div class="nav-icon">✅</div><span class="nav-text">Rotina</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="prazer" onclick="navTo('prazer')"><div class="nav-icon">✨</div><span class="nav-text">Prazer</span><div class="nav-dot"></div></div>
+        <div class="nav-item" data-route="explorar" onclick="navTo('explorar')"><div class="nav-icon">🔍</div><span class="nav-text" style="color:var(--color-accent-strong);">Explorar</span><div class="nav-dot" style="background:var(--color-accent-strong);opacity:1;"></div></div>
+        <div class="nav-item" data-route="perfil" onclick="navTo('perfil')"><div class="nav-icon">👤</div><span class="nav-text">Perfil</span><div class="nav-dot"></div></div>
+      </div>
+    </div>
+
+  </div><!-- /phone-frame -->
+</div><!-- /shell -->
+
+<script>
+  // ===== NAVIGATION ENGINE v4 — DETERMINÍSTICO, SEM BUGS =====
+
+  // Mapa canônico: alias → screenId real
+  const SCREEN_MAP = {
+    'home':            'home',
+    'rotina':          'rotina',
+    'prazer':          'prazer',
+    'shows':           'prazer',   // alias → abre prazer na aba shows
+    'livros':          'prazer',   // alias → abre prazer na aba livros
+    'esportes':        'prazer',   // alias → abre prazer na aba esportes
+    'explorar':        'explorar',
+    'perfil':          'perfil',
+    'rotina-trabalho': 'rotina-trabalho',
+    'pets-detail':     'pets-detail',
+    'amigos':          'amigos',
+    'amigo-ana':       'amigo-ana',
+    'momento-noite':   'momento-noite',
+    'momento-viagem':  'momento-viagem',
+  };
+
+  // Telas raiz da bottom nav — não mostram botão Voltar
+  const ROOT_SCREENS = new Set(['home','rotina','prazer','explorar','perfil']);
+
+  // Qual aba ativar quando destino é alias de prazer
+  const PRAZER_TAB_MAP = { 'shows': 'shows', 'livros': 'livros', 'esportes': 'esportes' };
+
+  // Estado global — único source of truth
+  let _current = 'onboard1';
+  let _history = ['onboard1'];
+  let _transitioning = false; // guard anti-spam, nunca bloqueia destinos diferentes
+
+  // ---------- primitiva de transição ----------
+  function _transition(fromId, toId, direction) {
+    // direction: 'forward' | 'back'
+    const fromEl = document.getElementById('screen-' + fromId);
+    const toEl   = document.getElementById('screen-' + toId);
+    if (!toEl) return;
+
+    _transitioning = true;
+
+    if (direction === 'forward') {
+      fromEl && fromEl.classList.add('exit-left');
+      toEl.classList.add('active');
+    } else {
+      // slide back: current sai para direita, anterior aparece
+      if (fromEl) {
+        fromEl.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+        fromEl.style.transform  = 'translateX(100%)';
+      }
+      toEl.classList.add('active');
+      toEl.style.transform = 'translateX(0)';
+    }
+
+    setTimeout(() => {
+      if (fromEl) {
+        fromEl.classList.remove('active','exit-left');
+        fromEl.style.transform  = '';
+        fromEl.style.transition = '';
+      }
+      _transitioning = false;
+    }, 350);
+  }
+
+  // ---------- navigate: push para histórico (tela interna) ----------
+  function goTo(target) {
+    const screenId = SCREEN_MAP[target] || target;
+    const fromId   = _current;
+
+    // Ativa aba correta se for alias de prazer
+    if (PRAZER_TAB_MAP[target]) switchTab(PRAZER_TAB_MAP[target]);
+
+    // Se já está na tela E não é spam durante transição → apenas re-ativa conteúdo
+    // Não bloqueia clique repetido, executa sempre
+    if (screenId === fromId && !_transitioning) {
+      updateHomePhase();
+      return;
+    }
+
+    // Bloqueia somente se já estiver em transição para o MESMO destino
+    if (_transitioning && screenId === fromId) return;
+
+    _current = screenId;
+    _history.push(screenId);
+
+    _transition(fromId, screenId, 'forward');
+    updateHomePhase();
+    _updateNavActiveState(screenId);
+  }
+
+  // ---------- navTo: tab switch — reseta histórico para raiz ----------
+  function navTo(target) {
+    const screenId = SCREEN_MAP[target] || target;
+
+    // Ativa aba correta se for alias de prazer
+    if (PRAZER_TAB_MAP[target]) switchTab(PRAZER_TAB_MAP[target]);
+
+    // Reseta histórico — bottom nav sempre navega para raiz limpa
+    _history  = [screenId];
+    const fromId = _current;
+    _current  = screenId;
+
+    // Se já está na tela: não anima, apenas garante estado correto
+    if (fromId === screenId) {
+      updateHomePhase();
+      _updateNavActiveState(screenId);
+      return;
+    }
+
+    _transition(fromId, screenId, 'forward');
+    updateHomePhase();
+    _updateNavActiveState(screenId);
+  }
+
+  // ---------- goBack: volta no histórico real ----------
+  function goBack() {
+    if (_history.length <= 1) return; // já na raiz, sem saída para trás
+    if (_transitioning) return;
+
+    _history.pop();
+    const toId   = _history[_history.length - 1];
+    const fromId = _current;
+    _current = toId;
+
+    _transition(fromId, toId, 'back');
+    _updateNavActiveState(toId);
+  }
+
+  // ---------- atualiza estado visual da bottom nav ----------
+  function _updateNavActiveState(screenId) {
+    // Mapeia screenId para qual tab raiz está ativa
+    const tabMap = {
+      'home': 'home', 'rotina': 'rotina', 'rotina-trabalho': 'rotina',
+      'pets-detail': 'rotina', 'prazer': 'prazer',
+      'explorar': 'explorar', 'amigos': 'explorar', 'amigo-ana': 'explorar',
+      'momento-noite': 'explorar', 'momento-viagem': 'explorar',
+      'perfil': 'perfil',
+    };
+    const activeTab = tabMap[screenId] || screenId;
+
+    document.querySelectorAll('.bottom-nav:not([data-onboard]) .nav-item').forEach(item => {
+      const route = item.dataset.route;
+      const isActive = route === activeTab;
+      item.classList.toggle('active', isActive);
+      item.classList.remove('active-aqua');
+      if (isActive && (screenId === 'amigos' || screenId === 'amigo-ana' || screenId === 'momento-noite' || screenId === 'momento-viagem')) {
+        item.classList.remove('active');
+        item.classList.add('active-aqua');
+      }
+      const dot  = item.querySelector('.nav-dot');
+      const text = item.querySelector('.nav-text');
+      if (dot)  dot.style.opacity  = isActive ? '1' : '0';
+    });
+  }
+
+  // ===== TASK COMPLETION WITH FEEDBACK =====
+  const feedbackMessages = {
+    success: [
+      'feito. menos uma na cabeça.',
+      'boa. isso aqui já não te preocupa mais.',
+      'concluído. seguimos.',
+      'riscou da lista. boa.',
+      'uma a menos. sua conta agradece.',
+    ],
+    undo: [
+      'voltou. eu sabia.',
+      'desfazendo... tá bom, a gente finge que não viu.',
+      'desfeito. sem julgamento.',
+    ]
+  };
+
+  function toggleCheck(el, context) {
+    if (el.classList.contains('done')) {
+      el.classList.remove('done');
+      el.textContent = '';
+      const label = el.nextElementSibling;
+      if (label) { label.style.textDecoration = ''; label.style.color = ''; }
+      const msgs = feedbackMessages.undo;
+      showToast(msgs[Math.floor(Math.random() * msgs.length)]);
+    } else {
+      el.classList.add('done');
+      el.textContent = '✓';
+      const label = el.nextElementSibling;
+      if (label) { label.style.textDecoration = 'line-through'; label.style.color = 'var(--color-text-disabled)'; }
+      const msgs = feedbackMessages.success;
+      showToast(msgs[Math.floor(Math.random() * msgs.length)], 'success');
+    }
+  }
+
+  function onPetTaskDone() {
+    showToast('🐾 passeio feito. eles ficaram felizes. ou fingiram.', 'success');
+  }
+
+  // ===== HOME PHASE (TIMELINE) =====
+  function updateHomePhase() {
+    const hour = new Date().getHours();
+    const badge = document.getElementById('phase-badge');
+    const greeting = document.querySelector('#screen-home .home-greeting');
+    const dateLabel = document.getElementById('home-date-label');
+    
+    const days = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+    const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const now = new Date();
+    if (dateLabel) dateLabel.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+
+    if (!badge || !greeting) return;
+    if (hour < 12) {
+      badge.innerHTML = '🌅 Manhã — foco nas tarefas';
+      badge.style.background = 'var(--color-primary-soft)';
+      badge.style.color = 'var(--color-primary)';
+      greeting.textContent = 'bom dia, Evellyn ☀️';
+    } else if (hour < 18) {
+      badge.innerHTML = '🌤 Tarde — trabalho em dia?';
+      badge.style.background = '#FEF3C7';
+      badge.style.color = '#92400E';
+      greeting.textContent = 'boa tarde, Evellyn 🌤';
+    } else {
+      badge.innerHTML = '🌙 Noite — modo off chegando';
+      badge.style.background = '#1E1B4B';
+      badge.style.color = '#A5B4FC';
+      greeting.textContent = 'boa noite, Evellyn 🌙';
+    }
+  }
+
+  // ===== TABS (Prazer) =====
+  function switchTab(tab) {
+    ['shows', 'livros', 'esportes'].forEach(t => {
+      document.getElementById('tab-' + t)?.classList.remove('active');
+      const el = document.getElementById('prazer-' + t);
+      if (el) el.style.display = 'none';
+    });
+    document.getElementById('tab-' + tab)?.classList.add('active');
+    const show = document.getElementById('prazer-' + tab);
+    if (show) show.style.display = 'block';
+  }
+
+  // ===== TOAST =====
+  let toastTimer;
+  function showToast(msg, type = 'neutral') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show';
+    if (type === 'success') t.classList.add('success');
+    if (type === 'error') t.classList.add('error');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ===== MODAL =====
+  const modals = {
+    'add-task': {
+      title: '➕ Nova tarefa',
+      sub: 'isso aqui é importante sim.',
+      btn: 'Adicionar',
+      action: () => showToast('✓ Tarefa adicionada. depois você resolve (ou não).', 'success')
+    },
+    'add-show': {
+      title: '🎤 Adicionar show',
+      sub: 'a gente finge que vai dar tempo.',
+      btn: 'Salvar',
+      action: () => showToast('🎤 Show salvo! financeiramente questionável.', 'success')
+    }
+  };
+
+  function showModal(type) {
+    const m = modals[type];
+    if (!m) return;
+    document.getElementById('modal-content').innerHTML = `
+      <div class="modal-title">${m.title}</div>
+      <div class="modal-sub">${m.sub}</div>
+      <button class="btn-primary" onclick="closeModal(); setTimeout(()=> (${m.action.toString()})(), 300)">
+        <span>${m.btn}</span><span>→</span>
+      </button>
+    `;
+    document.getElementById('modal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+  }
+
+  // ===== DARK MODE =====
+  let isDark = false;
+  function toggleDarkMode() {
+    isDark = !isDark;
+    document.getElementById('phone').setAttribute('data-theme', isDark ? 'dark' : '');
+    const pill = document.getElementById('dark-toggle-pill');
+    if (pill) pill.classList.toggle('on', isDark);
+    showToast(isDark ? '🌙 modo escuro ativado.' : '☀️ modo claro. olhos felizes.');
+  }
+
+  // ===== SWIPE BACK GESTURE =====
+  let touchStartX = 0;
+  const phone = document.getElementById('phone');
+
+  phone.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  phone.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (dx > 60 && touchStartX < 40) goBack();
+  }, { passive: true });
+
+  // ===== INIT =====
+  updateHomePhase();
+  setInterval(updateHomePhase, 60000);
+  _updateNavActiveState('onboard1');
+</script>
+</body>
+</html>
