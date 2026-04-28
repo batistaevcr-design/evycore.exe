@@ -1361,7 +1361,7 @@
                 <div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'home')"></div>
                 <span class="task-label">Dar aquela última revisada na entrega</span>
               </div>
-              <div class="cta-strip" onclick="goTo('rotina-trabalho')">continua por aqui → <span style="font-size:11px;color:var(--color-text-disabled);font-weight:400;font-style:italic">mais 2 tarefas</span></div>
+              <div class="cta-strip" onclick="goTo('rotina-trabalho')">Continua por aqui → <span style="font-size:11px;color:var(--color-text-disabled);font-weight:400;font-style:italic">mais 2 tarefas</span></div>
             </div>
 
             <!-- Card Casa -->
@@ -1495,7 +1495,7 @@
               <div class="task-item"><div class="task-check done" onclick="event.stopPropagation(); toggleCheck(this,'rotina')">✓</div><span style="text-decoration:line-through;color:var(--color-text-disabled);">Reunião — 10h</span></div>
               <div class="task-item"><div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'rotina')"></div><span>Revisar entrega</span></div>
               <div class="task-item"><div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'rotina')"></div><span>Ajustes no projeto</span></div>
-              <div class="cta-strip" onclick="goTo('rotina-trabalho')" style="margin-top:4px;">continua por aqui →</div>
+              <div class="cta-strip" onclick="goTo('rotina-trabalho')" style="margin-top:4px;">Continua por aqui →</div>
             </div>
 
             <!-- Pets -->
@@ -1562,7 +1562,7 @@
               </div>
             </div>
 
-            <div class="section-block-title">ESSA SEMANA</div>
+            <div class="section-block-title">ESSA SEMAlice</div>
             <div class="card">
               <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'work')"></div><span>Projeto X - apresentação</span></div>
               <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'work')"></div><span>Ajustes no case</span></div>
@@ -1697,7 +1697,7 @@
                     <div class="progress-label">65%</div>
                   </div>
                 </div>
-                <div class="cta-strip aqua" style="margin-top:8px;" onclick="showToast('📚 Continuando leitura...')">continua por aqui →</div>
+                <div class="cta-strip aqua" style="margin-top:8px;" onclick="showToast('📚 Continuando leitura...')">Continua por aqui →</div>
               </div>
               <div class="section-block-title">QUERO LER</div>
               <div class="card">
@@ -1894,7 +1894,7 @@
       <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
         <div class="amigos-header">
           <button class="back-btn-aqua" onclick="goBack()">← Voltar</button>
-          <div class="screen-title">Feat. pessoas</div>
+          <div class="screen-title">Feat. amigos</div>
           <div class="screen-subtitle">Participações especiais na vida real</div>
           <div style="display:flex;align-items:center;gap:-8px;margin-top:12px;">
             <div class="friend-avatar">🌸</div>
@@ -2005,9 +2005,9 @@
     </div>
 
     <!-- ========================= -->
-    <!-- SCREEN: AMIGO ANA         -->
+    <!-- SCREEN: AMIGO ALICE         -->
     <!-- ========================= -->
-    <div class="screen" id="screen-amigo-ana">
+    <div class="screen" id="screen-amigo-alice">
       <div class="status-bar dark" style="background:linear-gradient(160deg, #0F2B24 0%, #163D30 100%);">
         <span style="font-family:var(--font-display);font-weight:700;color:#94A3B8;">9:41</span>
         <div class="status-icons" style="color:#94A3B8;"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
@@ -2018,7 +2018,7 @@
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#FDA4AF,#F43F5E);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌸</div>
             <div>
-              <div class="friend-detail-name">Ana</div>
+              <div class="friend-detail-name">Alice</div>
               <div class="friend-detail-vibe">trilha sonora oficial: sentimentos intensos e cafés longos</div>
             </div>
           </div>
@@ -2243,7 +2243,7 @@
     'rotina-trabalho': 'rotina-trabalho',
     'pets-detail':     'pets-detail',
     'amigos':          'amigos',
-    'amigo-ana':       'amigo-ana',
+    'amigo-Alice':       'amigo-Alice',
     'momento-noite':   'momento-noite',
     'momento-viagem':  'momento-viagem',
   };
@@ -2361,7 +2361,7 @@
     const tabMap = {
       'home': 'home', 'rotina': 'rotina', 'rotina-trabalho': 'rotina',
       'pets-detail': 'rotina', 'Respiro': 'Respiro',
-      'Achadinhos': 'Achadinhos', 'amigos': 'Achadinhos', 'amigo-ana': 'Achadinhos',
+      'Achadinhos': 'Achadinhos', 'amigos': 'Achadinhos', 'amigo-Alice': 'Achadinhos',
       'momento-noite': 'Achadinhos', 'momento-viagem': 'Achadinhos',
       'perfil': 'perfil',
     };
@@ -2372,7 +2372,7 @@
       const isActive = route === activeTab;
       item.classList.toggle('active', isActive);
       item.classList.remove('active-aqua');
-      if (isActive && (screenId === 'amigos' || screenId === 'amigo-ana' || screenId === 'momento-noite' || screenId === 'momento-viagem')) {
+      if (isActive && (screenId === 'amigos' || screenId === 'amigo-Alice' || screenId === 'momento-noite' || screenId === 'momento-viagem')) {
         item.classList.remove('active');
         item.classList.add('active-aqua');
       }
