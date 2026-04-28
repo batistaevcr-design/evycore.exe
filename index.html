@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Evycore — organizando a vida em forma de app</title>
+<title>Evycore: eu, em forma de app</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
   /* ===== DESIGN TOKENS ===== */
@@ -1243,8 +1243,8 @@
             <div class="progress-dot"></div>
           </div>
           <span class="onboard-emoji">📱</span>
-          <div class="onboard-title">Aqui vai tudo que importa.</div>
-          <div class="onboard-sub">Tarefas, shows, leituras, amigos e aquele espaço pra não esquecer do que vale.</div>
+          <div class="onboard-title">Aqui cabe a minha vida.</div>
+          <div class="onboard-sub">Tarefas, shows, leituras, amigos e tudo que eu tento não esquecer no meio do caminho.</div>
           <div class="chips" style="margin-top:16px;">
             <div class="chip active" onclick="this.classList.toggle('active')">🏠 Casa</div>
             <div class="chip active" onclick="this.classList.toggle('active')">💼 Trabalho</div>
@@ -1285,8 +1285,8 @@
             <div class="progress-dot active"></div>
           </div>
           <span class="onboard-emoji">✨</span>
-          <div class="onboard-title">Tudo pronto.</div>
-          <div class="onboard-sub">Sério. A gente faz a vida caber aqui. Sem drama.</div>
+          <div class="onboard-title">Pronto… eu acho.</div>
+          <div class="onboard-sub">A gente vai ajustando, mas no fim dá pra fazer a vida caber aqui.</div>
         </div>
         <button class="btn-onboard" onclick="navTo('home')">
           <span>🚀 Entrar no evycore</span>
@@ -1313,8 +1313,8 @@
       <div class="light-screen">
         <div class="home-top">
           <div class="home-date" id="home-date-label">Segunda, 27 Abr</div>
-          <div class="home-greeting">bom dia, Evellyn ☀️</div>
-          <div class="phase-badge" id="phase-badge">🌅 Manhã — foco nas tarefas</div>
+          <div class="home-greeting">Bom dia, Evellyn ☀️</div>
+          <div class="phase-badge" id="phase-badge">🌅 Manhã: Foco nas tarefas</div>
         </div>
         <div class="screen-scroll">
           <div class="p20 pb100" style="padding-top:12px;">
@@ -1322,19 +1322,19 @@
             <!-- Progress geral do dia -->
             <div class="card" style="margin-bottom:16px;">
               <div class="card-header" style="margin-bottom:6px;">
-                <div class="card-title">📊 Como tá o dia</div>
+                <div class="card-title">📊 Hoje, até agora</div>
                 <span id="task-count-label" style="font-size:11px;font-weight:700;color:var(--color-text-disabled);font-family:var(--font-display);">2 / 5 feitas</span>
               </div>
               <div class="progress-bar-wrap">
                 <div class="progress-bar-fill" id="day-progress-bar" style="width:40%;"></div>
               </div>
-              <div class="microcopy" id="day-progress-msg">isso aqui tá indo. segue.</div>
+              <div class="microcopy" id="day-progress-msg">Devagar, mas indo. e isso já conta.</div>
             </div>
 
             <!-- PHASE: Manhã — ROTINA -->
             <div class="phase-divider">
               <div class="phase-divider-line"></div>
-              <div class="phase-divider-label">🌅 rotina de hoje</div>
+              <div class="phase-divider-label">🌅 o dia de hoje</div>
               <div class="phase-divider-line"></div>
             </div>
 
@@ -1343,7 +1343,7 @@
               <div class="card-header">
                 <div>
                   <div class="card-title-lg">💼 Trabalho</div>
-                  <div class="microcopy">reunião em 20 min, aproveitou?</div>
+                  <div class="microcopy">Reunião em 20 min. Bora aproveitar?</div>
                 </div>
                 <button class="btn-ghost" onclick="event.stopPropagation(); goTo('rotina-trabalho')">Ver tudo →</button>
               </div>
@@ -1359,7 +1359,7 @@
               </div>
               <div class="task-item">
                 <div class="task-check" onclick="event.stopPropagation(); toggleCheck(this,'home')"></div>
-                <span class="task-label">Revisar entrega</span>
+                <span class="task-label">Dar aquela última revisada na entrega</span>
               </div>
               <div class="cta-strip" onclick="goTo('rotina-trabalho')">continua por aqui → <span style="font-size:11px;color:var(--color-text-disabled);font-weight:400;font-style:italic">mais 2 tarefas</span></div>
             </div>
@@ -1369,13 +1369,13 @@
               <div class="card-header">
                 <div>
                   <div class="card-title-lg">🏡 Casa</div>
-                  <div class="microcopy">que saudade de mamãe</div>
+                  <div class="microcopy">Que saudade de mamãe</div>
                 </div>
                 <button class="btn-ghost" onclick="showToast('🏡 Ver tudo — em breve!')">Ver tudo →</button>
               </div>
               <div class="task-item">
                 <div class="task-check" onclick="toggleCheck(this,'home')"></div>
-                <span class="task-label">Pagar conta</span>
+                <span class="task-label">Pagar aquela conta</span>
               </div>
               <div class="task-item">
                 <div class="task-check done" onclick="toggleCheck(this,'home')">✓</div>
