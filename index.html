@@ -2476,20 +2476,20 @@
 
     if (!badge || !greeting) return;
     if (hour < 12) {
-      badge.innerHTML = '🌅 Manhã — foco nas tarefas';
+      badge.innerHTML = '🌅 Manhã - foco nas tarefas';
       badge.style.background = 'var(--color-primary-soft)';
       badge.style.color = 'var(--color-primary)';
       greeting.textContent = 'Bom dia, Evellyn ☀️';
     } else if (hour < 18) {
-      badge.innerHTML = '🌤 Tarde — trabalho em dia?';
+      badge.innerHTML = '🌤 Tarde - trabalho em dia?';
       badge.style.background = '#FEF3C7';
       badge.style.color = '#92400E';
-      greeting.textContent = 'boa tarde, Evellyn 🌤';
+      greeting.textContent = 'Boa tarde, Evellyn 🌤';
     } else {
-      badge.innerHTML = '🌙 Noite — modo off chegando';
+      badge.innerHTML = '🌙 Noite - o logoff chegando';
       badge.style.background = '#1E1B4B';
       badge.style.color = '#A5B4FC';
-      greeting.textContent = 'boa noite, Evellyn 🌙';
+      greeting.textContent = 'Boa noite, Evellyn 🌙';
     }
   }
 
