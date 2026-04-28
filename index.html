@@ -1562,7 +1562,7 @@
               </div>
             </div>
 
-            <div class="section-block-title">ESSA SEMAlice</div>
+            <div class="section-block-title">ESSA SEMANA</div>
             <div class="card">
               <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'work')"></div><span>Projeto X - apresentação</span></div>
               <div class="task-item"><div class="task-check" onclick="toggleCheck(this,'work')"></div><span>Ajustes no case</span></div>
@@ -2243,7 +2243,7 @@
     'rotina-trabalho': 'rotina-trabalho',
     'pets-detail':     'pets-detail',
     'amigos':          'amigos',
-    'amigo-Alice':       'amigo-Alice',
+    'amigo-alice':       'amigo-alice',
     'momento-noite':   'momento-noite',
     'momento-viagem':  'momento-viagem',
   };
@@ -2361,7 +2361,7 @@
     const tabMap = {
       'home': 'home', 'rotina': 'rotina', 'rotina-trabalho': 'rotina',
       'pets-detail': 'rotina', 'Respiro': 'Respiro',
-      'Achadinhos': 'Achadinhos', 'amigos': 'Achadinhos', 'amigo-Alice': 'Achadinhos',
+      'Achadinhos': 'Achadinhos', 'amigos': 'Achadinhos', 'amigo-alice': 'Achadinhos',
       'momento-noite': 'Achadinhos', 'momento-viagem': 'Achadinhos',
       'perfil': 'perfil',
     };
@@ -2372,7 +2372,7 @@
       const isActive = route === activeTab;
       item.classList.toggle('active', isActive);
       item.classList.remove('active-aqua');
-      if (isActive && (screenId === 'amigos' || screenId === 'amigo-Alice' || screenId === 'momento-noite' || screenId === 'momento-viagem')) {
+      if (isActive && (screenId === 'amigos' || screenId === 'amigo-alice' || screenId === 'momento-noite' || screenId === 'momento-viagem')) {
         item.classList.remove('active');
         item.classList.add('active-aqua');
       }
@@ -2385,16 +2385,20 @@
   // ===== TASK COMPLETION WITH FEEDBACK =====
   const feedbackMessages = {
     success: [
-      'feito. menos uma na cabeça.',
-      'boa. isso aqui já não te preocupa mais.',
-      'concluído. seguimos.',
-      'riscou da lista. boa.',
-      'uma a menos. sua conta agradece.',
+      'Feito. Menos uma na cabeça.',
+      'Boa. Isso aqui já não te assombra mais.',
+      'Foi. Seguimos.',
+      'Riscado da lista. Amém.',
+      'Uma a menos. Já dá um alívio.',
+      'Isso aí. Já conta como vitória.',
     ],
     undo: [
-      'voltou. eu sabia.',
-      'desfazendo... tá bom, a gente finge que não viu.',
-      'desfeito. sem julgamento.',
+      'Voltou... eu sabia.',
+      'Desfazendo... tá bom, a gente finge que não viu.',
+      'Desfeito. Sem julgamento.',
+      'Ok, voltamos atrás.',
+      'Calma, dá pra refazer.',
+      'Foi sem querer? acontece.',
     ]
   };
 
