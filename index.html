@@ -1971,7 +1971,7 @@
               </div>
             </div>
 
-            <div class="moment-card tappable" onclick="navTo('amigos')">
+            <div class="moment-card tappable" onclick="navTo('momento-noite')">
               <div class="moment-top">
                 <div>
                   <div class="card-title-lg">🎭 Carnaval que virou história</div>
@@ -2104,7 +2104,7 @@
       </div>
       <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
         <div class="moment-header">
-          <button class="back-btn-aqua" onclick="goBack()">← Voltar</button>
+          <button class="back-btn-aqua" onclick="navTo('amigos')">← Voltar</button>
           <div style="font-size:32px;margin-bottom:8px;">🎭</div>
           <div class="screen-title" style="color:#E2E8F0;">Carnaval que virou história</div>
           <div class="screen-subtitle" style="color:var(--color-accent);opacity:0.8;">O Carnaval de 2026 foi bom, mas já vamos nos preparar pra 2027</div>
@@ -2519,7 +2519,7 @@
     document.getElementById('phone').setAttribute('data-theme', isDark ? 'dark' : '');
     const pill = document.getElementById('dark-toggle-pill');
     if (pill) pill.classList.toggle('on', isDark);
-    showToast(isDark ? '🌙 modo escuro ativado.' : '☀️ modo claro. olhos felizes.');
+    showToast(isDark ? '🌙 Luzes apagadas. Funciono melhor assim.' : '☀️ A luz voltou. Olhos felizes.');
   }
 
   // ===== SWIPE BACK GESTURE =====
